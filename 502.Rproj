@@ -1,13 +1,1252 @@
-Version: 1.0
+---
+output:
+  pdf_document:
+    includes:
+      in_header: "nick_preamble.tex"
+---
 
-RestoreWorkspace: Default
-SaveWorkspace: Default
-AlwaysSaveHistory: Default
 
-EnableCodeIndexing: Yes
-UseSpacesForTab: Yes
-NumSpacesForTab: 2
-Encoding: UTF-8
+\vspace{3cm}
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{ N Gawron,
+	K. Settlemyre,
+Z. Abahana
+}
 
-RnwWeave: Sweave
-LaTeX: pdfLaTeX
+
+\lhead{\color{NCSURed}\LARGE{\textbf{ST 502 Project 1}}}
+\rfoot{\thepage}
+
+
+# Introduction 
+
+
+
+
+In statistical inference, we are interested in properties of an estimator to make inference. One of the major ways of conducting inference is observing the confidence interval (CI), which is the plausible values for the parameter of interest. In observing CI, we are confident that our parameter of interest is in the interval at given confidence level (say, 95%). CI’s vary in performance in differing situations. In this project, we are interested assessing different methods to determine which competing CI to use. We are interested in comparing six different CI methods for $Y=exp(\lambda)$ population, and the parameter of interest for the CI is $\lambda$ which is estimated by $1/\overline{Y}$ . The methods assessed are: exact interval; large-sample normality based using CLT & delta method; raw percentile parametric/non-parametric bootstrap intervals; reflected percentile non-parametric bootstrap interval; and the bootstrap t-interval using non-parametric bootstrap.
+
+Overall, we found that exact and CLT / Approximate intervals perform best when considering an appropriate distribution of any size. For the  misspecified population , exact and CLT methods actually did better than our specified coverage rate. Non-parametric methods ( that are not t-statistic based) were  the only method to create an appropriate coverage rate given a large sample size. As sample size increased we noticed that bootstrap based methods ( parametric and non parametric) intervals improved in performance (in terms of coverage rate) and approached the approved. Lengths for intervals with an incorrect population are roughly halved in comparison to their correct population ed counterparts.   
+
+Note that you can find all the code for this project at the [Github Link Here](https://github.com/ncgawron/ST502Project)!
+
+
+# CI Discussion
+
+
+The project will use Monte Carlo simulation for the data generation process on exponential and related gamma distribution and examines the properties of the CI methods for a set of $\lambda$'s over increasing sample sizes ($n$'s). The performance aspects of the estimators are compared in terms of coverage rate, proportion of intervals missed, length of the interval and standard error of the average length of the interval. 
+
+
+
+
+The most analytic way to approach a confidence interval is to use an exact method, based on a quantity called a pivot. If we consider a random variable $\mathbf{X}$ with parameter $\lambda$ the pivot $Q(X_1,\ldots,X_n, \lambda)$ is a function based on the sample data and the parameter itself. In essence, we need this pivot to be a function of our estimate and parameter of interest, with no other ‘unknowns’. This pivot will also have a probability distribution associated with it. It is important for a pivot to have this distribution not rely on any unknown values. 
+
+As we mentioned above, it may be cumbersome to derive a pivot function from a statistic and a parameter of interest. It may be even more difficult to find a distribution for this pivot function that does not depend on our parameter of interest. If this analytic approach to finding a distribution cannot be done - we can use approximate distributions to help us. Briefly, the CLT allows us to approximate the average of an iid sample of  random variables in terms of the Normal for as sample size grows. Since our parameter of interest $\lambda$ can be estimated by the mean of our sample data - we can somehow take advantage of this approximate distribution to help us create the bounds for our confidence interval.  
+
+
+These methods above are all well and good, but what if we are interested in CI of an estimate that does not involve the mean? For starter, the  CLT approach we outlined will not help us.
+
+In this case, the bootstrap is an all-purpose method for constructing approximate CI for any population quantity (without making assumptions about the population distribution). Bootstrapping is method that applies a random sampling with replacement. Bootstrap uses the empirical distribution function to approximate the CDF. The bootstrap CI is made by repeatedly taking random samples of size (n) from the empirical distribution function and computing the mean of each bootstrap sample. These bootstrap sample means approximate the distribution of the sample mean and can be used to find a CI.
+
+The idea behind parametric bootstrapping is to take the initial data and assume our parameter estimates from the data are the true values of the population. What this means is we take the simulated data given, and compute our parameter estimates based on a method like MOM or MLE. We approximate the distribution using these assumed true values, and then take a random sample of size n from this distribution, finding parameter estimates from it. We repeat this process many, many times (let’s say B times), taking samples of size n and finding estimates, and using these B samples to form approximations of the sampling distribution for our estimators, that being a bootstrap distribution. We can form confidence intervals from the bootstrapped distribution by taking the $(1-\frac{\alpha}{2})$ and $\frac{\alpha}{2}$ quantiles. For parametric bootstrapping, we make assumptions that the underlying shape of the data is parametric, that it can be modeled. 
+
+
+Nonparametric bootstrapping is similar to parametric in the sense we are taking repreated resamplings. We take our initial data and take a resample of size n from it, with replacement, and find estimates of our parameters. Note the difference here - we are merely resampling from our provided (or in our case simulated) data to create a bootstrap sample. We did not make any assumptions about the underlying distribution we are working with. To continue, we repeat this process B times, taking resamples of size $n$ with replacement and finding estimates, and then using these B resamples to form an approximate sampling distribution for our estimators. To form a confidence interval, we take the $(1-\frac{\alpha}{2})$ and $\frac{\alpha}{2}$ quantiles of the bootstrapped distribution. For nonparametric bootstrapping, we make no assumption about the underlying distribution.
+
+
+Reflected nonparametric bootstrapping percentile uses the nonparametric bootstrap on the difference between the value of interest and the estimator  $\delta = \hat{\lambda}-\lambda$ when our interest is in the quantity of distribution of the differences. The distribution of this quantity is not known, therefore, we use nonparametric bootstrap to approximate it. In the case of nonparametric bootstrapping, we generate $B=1000$ resamples of size $n$ from observed data with replacement. For each resample, we estimate of $\hat{\lambda}$ and approximate the distribution of $\hat{\lambda}-\lambda$ using the bootstrap distirbution from our bootstrap samples of $\hat{\lambda}-\lambda$. We then take the $\alpha/2$ and $1-\alpha/2$ quantiles of our distribution to form our interval. Why would we use this? 
+Well if it was difficult to analytically compute the distribution of we may want to use a bootstrap estimate. Otherwise, we would be able to use an exact method since $\hat{\lambda}-\lambda$ is a pivot. 
+
+Non-parametric bootstrap t-interval can be used to create a ‘t-type’ statistic to use as a pivot, and approximate the quantile of the sampling distribution of
+
+$$T = \frac{\hat{\lambda}-\lambda}{\hat{SE}(\hat{\lambda})}$$
+The steps involve creating a nonparametric bootstrap resample and calculating for each resample as in the quantity 
+
+$$\delta^* = \frac{\hat{\lambda}^*-\lambda}{\hat{SE}(\hat{\lambda^*})}$$
+
+We use bootstrapped (B=100) resamples to approximate the value of T. The number of Bootstrap  replications is shortened to 100 to save on computation time. 
+
+For each reseample we estimate $\hat{\lambda}$ and approximate the distirbution of $\hat{\lambda}$ by a bootstrap distribution $\hat{\lambda}^*-\lambda$.
+We then take the $\alpha/2$ and $1-\alpha/2$ quantiles to gives us our $(1-\alpha)100\%$ confidence interval.
+
+The big idea about this interval is we actually need to create another estimate. This standard error in this interval is still a random quantity. This is why we now treat our bootstrapped estimates at the true value of our parameter - and conduct a second bootsrapped sample ( of a much smaller size to save on computation time) to estiamte this value. The standard devious from this bootstrapped sample will be our estimate for the standard error in this t-test. 
+
+For how well our confidence intervals perform, we’re interested in the length of the interval, the proportion of intervals that capture our parameter of interest, the proportion of parameters that miss above our parameter, the proportion of intervals that miss below our parameter, and the standard error of the average length of the interval. The way we construct our confidence interval, we need the standard error, which measures variability in the sampling distribution. This value contributes to the margin of error, which is half the length of the interval. The larger the standard error, the more variability, the larger our confidence interval. If we can reduce our standard error, we reduce our margin of error and get a more narrow interval, reducing uncertainty around the true value. Given repeated sampling, we might want to see the proportion of intervals that capture the true value. With a specified level of confidence, $(1-\alpha)100%$, we expect that approximately  $(1-\alpha)100%$ of those intervals capture the true value. Similarly, there should be approximately $\alpha *100%$ intervals that miss the true value.
+
+
+We examine coverage rate as a way to determine how accurate our interval is. The greater the coverage rate - the more optimal our interval is for estimating a particular parameter. We note that $1$ is the maximum value for coverage rate - this means all interval capture are desired interval. 
+
+On the other hand, we look at length in the opposite way. Smaller the better. If an interval on average is smaller this means there is less variability in our estimate of a certain parameter. 
+
+
+In some instances we may be interested in a misspesfied population. In the creation of these confidence intervals, we rely on a sample from a parent population. For example, an exact interval is created based on the assumption that $Y_i$ comes from a sample of a certain parent population, in our case the exponential.  We are interested in looking at a wrong population if we want to observe how robust our methods are to different data. This can help us answer a lot of questions. For example, Is the exact interval going to become an awful interval ( in terms of coverage rate) if we do not give it data that is from an exponential distribution?
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+#loads in libraries
+library(tidyverse)
+library(ggplot2)
+library(knitr)
+```
+
+# Simulation and Derivations 
+
+We will be setting up functions to create a singular confidence interval for one pair of $n$ and $\lambda$ values. 
+
+Our goal to create summary information and compare these intervals is to 
+evaluate this function for the 12 combinations of settings for $n$ and $\lambda$, with 1000 replications each.
+We can then compute our summary statistics: 
+
+- proportion of intervals capturing the true parameter, coverage rate
+- proportion of intervals that missed the parameter from above 
+- proportion of intervals that missed the parameter from below
+- Average length of the interval 
+- Standard error of the average length for the interval
+
+
+## Exact Interval 
+
+We begin by noting that $\hat{\lambda}_{MOM} = \frac{1}{\overline{Y}}$. 
+The exact interval is derived by starting to create a pivot using our estimator
+and parameter $\lambda$. 
+
+
+
+We suppose $Y_i \sim exp(\lambda) = Ga(1,\lambda)$.
+
+It follows from MGF arguments that the num of $Y_i$'s yeilds:
+
+$$\sum_{i=1}^n Y_i \sim Ga(n,\lambda) \implies \, \bar{Y} \sim Ga(n,n \lambda)$$
+
+We note by the definition of the MOM argument, and multiplying by $\lambda$ we arrive at:  $$\lambda \overline{Y} = \lambda  \frac{1}{\hat{\lambda}} \sim Ga\left(n,n\frac{\lambda}{\lambda}\right)=Ga\left(n,n\right)$$
+
+
+Our exact pivot is $\frac{\lambda}{\hat{\lambda}}$. 
+
+We then create a probability statement: 
+
+$$1-\alpha  = P \left( ga_{\alpha/2} < \frac{\lambda}{\hat{\lambda}} <  ga_{1-\alpha/2}  \right)$$
+
+
+We isolate for $\lambda$ by multiplying both bounds by $\hat{\lambda}$ to arrive at the exact $(1-\alpha)100\%$ CI for $\lambda$:
+
+$$(\hat{\lambda}ga_{\alpha/2}\, , \, \hat{\lambda}ga_{1-\alpha/2})$$
+
+We create a function to do this calculation below:
+
+
+```{r}
+
+
+
+# a function for an exact distribution 
+exact_dist_ci<- function(B,n,lambda,alpha){
+  #create an interval using derived form
+  
+  # creates a sample of size n with given lambda
+  #computes point estimate for lambda
+  lambda_hat <- 1/mean(rexp(n,lambda))
+  
+  #computes exact interval for bounds
+  ub <- lambda_hat*qgamma(1-alpha/2, n, n)
+  lb <-  lambda_hat*qgamma(alpha/2, n, n)
+  
+  #returns the vector of lower and upperbound
+  bounds<-data.frame(low_bound=lb,up_bound=ub)
+  
+  return(bounds)
+  
+  }
+
+
+```
+
+Now we let the gamma distribution be  the true population. This is the idea of misspesification where we derive our sample data. 
+
+```{r}
+# a function for a exact dist with gamma dist 
+exact_dist_ci_gamma<- function(B,n,lambda,alpha){
+  #create an interval using derived form
+  
+  # creates a sample of size n with given lambda
+  # computes point estimate for lambda
+  # gamma(2,lambda)
+  lambda_hat <- 1/mean(rgamma(n,2,lambda))
+  
+  #computes exact interval for bounds
+  ub <- lambda_hat*qgamma(1-alpha/2, n, n)
+  lb <-  lambda_hat*qgamma(alpha/2, n, n)
+  
+  #returns the vector of lower and upperbound
+  bounds<-data.frame(low_bound=lb,up_bound=ub)
+  
+  return(bounds)
+  
+  }
+```
+
+
+
+
+## Large Sample Normality Based 
+
+
+The idea behind this interval is to use the CLT to get an approximate distribution to model our parameter. 
+
+
+We let $Y_i \sim exp(\lambda)$ be an iid sample. If we assume $Var(Y_i) = \frac{1}{\lambda^2}<\infty$ then by the CLT:
+
+$$\overline{Y} \apsim N\left(\frac{1}{\lambda},\frac{1/\lambda^2}{n}\right)$$
+
+We now employ the Delta Method Normality. We let $g(\overline{Y}) = \frac{1}{\overline{Y}}$ we arrive at: 
+
+
+$$\hat{\lambda}_{MOM}  = \frac{1}{\overline{Y}} \apsim N\left(g\left(\frac{1}{\lambda}\right),g'\left(\frac{1}{\lambda}\right)^2 Var(\overline{Y})\right)$$
+
+Note that the derivative $g'(1/\lambda)$ is: $\lambda^2$ and $Var(\overline{Y}) = 1/\lambda^2n$. When substitute the values from above in the delta normality formula. 
+
+$$\hat{\lambda}_{MOM}  = \frac{1}{\overline{Y}} \apsim N\left(g\left(\frac{1}{\lambda}\right),g'\left(\frac{1}{\lambda}\right)^2 Var(\overline{Y})\right)$$
+
+We arrive at the Approximate Distribution for $\hat{\lambda}$ as: 
+
+$$\hat{\lambda} = 1/\overline{Y}\apsim N(\lambda,\lambda^2/n)$$
+We can normalize to get an approximate distribution that converges to the standard normal.
+
+$$\dfrac{\hat{\lambda}-\lambda}{\lambda/\sqrt{n}} \xrightarrow{\text{d}} N(0,1)$$
+
+By Slutskys Thm the fact that $\hat{\lambda}$ is a consistent estimator.  
+
+$$\dfrac{\hat{\lambda}-\lambda}{\hat{\lambda}/\sqrt{n}} \xrightarrow{\text{d}} N(0,1)$$
+
+We can now setup the probability distribution: 
+
+$$1-\alpha \approx  P\left(-z_{\alpha/2}<\dfrac{\hat{\lambda}-\lambda}{\hat{\lambda}/\sqrt{n}}<z_{\alpha/2}\right)$$
+
+
+After solving for $\lambda$ in the probability statement. We arrive at: 
+
+$$\hat{\lambda} \pm z_{\alpha/2}\frac{\hat{\lambda}}{\sqrt{n}}$$
+
+
+```{r}
+# a function CLT int 
+CLT_int<- function(B,n,lambda,alpha){
+  #create a sample of size n with lambda
+  MainSample<-rexp(n,lambda)
+  # creates a parametric boot using an estimate for lambda
+  lambda_hat<-1/mean(MainSample)
+ 
+  
+  #creates the bounds of the interval
+  ub<- lambda_hat+qnorm(alpha/2,lower.tail = F)*lambda_hat/sqrt(n)
+  lb<- lambda_hat-qnorm(alpha/2,lower.tail = F)*lambda_hat/sqrt(n)
+  
+
+  
+  #returns the vector of lower and upperbound
+  bounds<-data.frame(low_bound=lb,up_bound=ub)
+  
+  return(bounds)
+  
+  }
+```
+
+
+Here is a function used to create a singular interval based on the CLT 
+delta normality method. The difference here is we create a sample size of size n 
+for an interval 
+
+```{r}
+# a function fCLt int with gamma 
+CLT_int_gamma<- function(B,n,lambda,alpha){
+  #create a sample of size n with lambda
+  MainSample<-rgamma(n,2,lambda)
+  # creates a parametric boot using an estimate for lambda
+  lambda_hat<-1/mean(MainSample)
+ 
+  
+  #creates the bounds of the interval
+  ub<- lambda_hat+qnorm(alpha/2,lower.tail = F)*lambda_hat/sqrt(n)
+  lb<- lambda_hat-qnorm(alpha/2,lower.tail = F)*lambda_hat/sqrt(n)
+  
+
+  
+  #returns the vector of lower and upperbound
+  bounds<-data.frame(low_bound=lb,up_bound=ub)
+  
+  return(bounds)
+  
+  }
+```
+
+
+
+### Simulation 
+
+
+
+
+Here is a basic function. We note that the estimate of $\lambda$, $\hat{\lambda} = \frac{1}{\overline{Y}}$. 
+
+## Parametric Bootstrap 
+
+
+```{r}
+
+
+# a function for a  parametric bootstrap for lambda hat
+param_boots<- function(B,n,lambda,alpha){
+  #create a sample of size n with lambda
+  MainSample<-rexp(n,rate =lambda)
+  # creates a parametric boot using an estimate for lambda
+  
+   # create B samples from a dist hence param. 
+  Bootstrap<- replicate(B,rexp(n,rate=1/mean(MainSample)))
+  
+  #compute statisitc for each of the B samples
+  lambda_hat_j = 1 / colMeans(Bootstrap)
+  
+  #using these value as an approx dist 
+  #creat CIs
+  
+  ub<- unname(quantile(lambda_hat_j,1-alpha/2))
+  lb<- unname(quantile(lambda_hat_j,alpha/2))
+  
+  #returns the vector of lower and upperbound
+  bounds<-data.frame(low_bound=lb,up_bound=ub)
+  
+  return(bounds)
+  
+  }
+
+
+
+# a function for a  parametric bootstrap for lambda hat from gamma 
+param_boots_gamma<- function(B,n,lambda,alpha){
+  #create a sample of size n with lambda
+  MainSample<-rgamma(n,2,rate =lambda)
+  # creates a parametric boot using an estimate for lambda
+  
+   # create B samples from a dist hence param. 
+  Bootstrap<- replicate(B,rexp(n,rate=1/mean(MainSample)))
+  
+  #compute statisitc for each of the B samples
+  lambda_hat_j = 1 / colMeans(Bootstrap)
+  
+  #using these value as an approx dist 
+  #creat CIs
+  
+  ub<- unname(quantile(lambda_hat_j,1-alpha/2))
+  lb<- unname(quantile(lambda_hat_j,alpha/2))
+  
+  #returns the vector of lower and upperbound
+  bounds<-data.frame(low_bound=lb,up_bound=ub)
+  
+  return(bounds)
+  
+  }
+
+
+
+```
+
+
+## Non Parametric Bootstrap
+
+
+
+
+```{r}
+
+
+
+
+# a function for a non parametric bootstrap for lambda hat
+np_boots<- function(B,n,lambda,alpha){
+  #create a sample of size n with lambda
+  MainSample<-rexp(n,lambda)
+  # create B samples
+  Bootstrap<- replicate(B,sample(MainSample,replace = TRUE))
+  
+  #compute statisitc for each of the B samples
+  lambda_hat_j = 1 / colMeans(Bootstrap)
+  
+  #using these value as an approx dist 
+  #creat CIs
+  
+  ub<- unname(quantile(lambda_hat_j,1-alpha/2))
+  lb<- unname(quantile(lambda_hat_j,alpha/2))
+  
+  #returns the vector of lower and upperbound
+  bounds<-data.frame(low_bound=lb,up_bound=ub)
+  
+  return(bounds)
+  
+  }
+
+
+
+# for the misspesficed gamma(2,lambda)
+# a function for a non parametric bootstrap for lambda hat
+np_boots_gamma<- function(B,n,lambda,alpha){
+  
+  #create a sample of size n with lambda from gamma with alpha =2
+  MainSample<-rgamma(n,2,lambda)
+  
+  # create B samples
+  Bootstrap<- replicate(B,sample(MainSample,replace = TRUE))
+  
+  #compute statisitc for each of the B samples for lambda 
+  # note estimating   
+  lambda_hat_j = (1 / colMeans(Bootstrap))
+  
+  #using these value as an approx dist 
+  #creat CIs
+  
+  ub<- unname(quantile(lambda_hat_j,1-alpha/2))
+  lb<- unname(quantile(lambda_hat_j,alpha/2))
+  
+  #returns the vector of lower and upperbound
+  bounds<-data.frame(low_bound=lb,up_bound=ub)
+  
+  return(bounds)
+  
+  }
+
+
+```
+
+
+
+
+
+
+
+## Nested Bootstrap $s.e.(\hat{\lambda})$
+
+
+
+
+```{r}
+
+# t test stat via nested boot 
+np_boot_se_t<-function(B,n,lambda,alpha){
+
+  MainSample<-rexp(n,lambda)
+  
+  lambdahat<-1/mean(MainSample)
+  
+  # create B samples
+  Bootstrap<- replicate(B,sample(MainSample,replace = TRUE))
+  
+  #compute statisitc for each of the B samples
+  lambda_hat_j = 1 / colMeans(Bootstrap)  
+  
+  
+  SE_lambda_j_hat<-sqrt((1/B)*sum((lambda_hat_j-mean(lambda_hat_j))^2))
+
+
+  #treating Boostrap as the truth
+  #gets us SE(\theta)
+  #looks at columns from the Bootstrap data
+  bootSE<-apply(X=Bootstrap,MARGIN=2,M=50,n,FUN=function(x,M,n){
+    #treating Bootsrap data as our real data we resample here
+    tempData<-replicate(M,sample(x=x,size=n,replace=TRUE))
+    #find mean and lambda estimate for each data set
+    tempMeans<-colMeans(tempData)
+    lambda_hat_est<- 1 / tempMeans
+    sd(lambda_hat_est)
+  })
+  
+  
+  
+  #create t-stats
+  tStats<-(lambda_hat_j-lambdahat)/bootSE
+  
+  #have to create std error for boot
+  SE_lambda_hat_j <-sd(lambda_hat_j)
+  
+  #now create interval
+  #intervals
+  lb=lambdahat-unname(quantile(tStats,1-alpha/2))*SE_lambda_hat_j
+  ub=lambdahat-unname(quantile(tStats,alpha/2))*SE_lambda_hat_j
+  
+  #returns the vector of lower and upperbound
+  bounds<-data.frame(low_bound=lb,up_bound=ub)
+  
+  return(bounds)
+
+} 
+```
+
+
+
+
+
+
+```{r}
+
+# nested boot strap for t-stat
+np_boot_se_t_gamma<-function(B,n,lambda,alpha){
+
+  MainSample<-rgamma(n,2,lambda)
+  
+  lambdahat<-1/mean(MainSample)
+  
+  # create B samples
+  Bootstrap<- replicate(B,sample(MainSample,replace = TRUE))
+  
+  #compute statisitc for each of the B samples
+  lambda_hat_j = 1 / colMeans(Bootstrap)  
+  
+  
+  SE_lambda_j_hat<-sqrt((1/B)*sum((lambda_hat_j-mean(lambda_hat_j))^2))
+
+
+  #treating Boostrap as the truth
+  #gets us SE(\theta)
+  #looks at columns from the Bootstrap data
+  bootSE<-apply(X=Bootstrap,MARGIN=2,M=50,n,FUN=function(x,M,n){
+    #treating Bootsrap data as our real data we resample here
+    tempData<-replicate(M,sample(x=x,size=n,replace=TRUE))
+    #find mean and lambda estimate for each data set
+    tempMeans<-colMeans(tempData)
+    lambda_hat_est<- 1 / tempMeans
+    sd(lambda_hat_est)
+  })
+  
+  
+  
+  #create t-stats
+  tStats<-(lambda_hat_j-lambdahat)/bootSE
+  
+  #have to create std error for boot
+  SE_lambda_hat_j <-sd(lambda_hat_j)
+  
+  #now create interval
+  #intervals
+  lb=lambdahat-unname(quantile(tStats,1-alpha/2))*SE_lambda_hat_j
+  ub=lambdahat-unname(quantile(tStats,alpha/2))*SE_lambda_hat_j
+  
+  #returns the vector of lower and upperbound
+  bounds<-data.frame(low_bound=lb,up_bound=ub)
+  
+  return(bounds)
+
+} 
+```
+
+
+
+## Reflected Interval
+
+
+Here are functions to create the reflected interval under each population setting. 
+
+```{r}
+
+# reflected non param interval 
+reflected_int<-function(B,n,lambda,alpha){
+
+  MainSample<-rexp(n,lambda)
+  
+  #observed lambda from sample 
+  lambda_obs<- 1/mean(MainSample)
+  
+  # create B samples
+  Bootstrap<- replicate(B,sample(MainSample,replace = TRUE))
+  
+  #compute statisitc for each of the B samples
+  lambda_hat_j = 1 / colMeans(Bootstrap)  
+  
+  #gets bootsrap dist of theta_hat - theta
+  lambda_hat_m_lambda<- lambda_hat_j - lambda_obs
+  
+  #now create interval
+  #intervals
+  lb=lambda_obs-unname(quantile(lambda_hat_m_lambda,1-alpha/2))
+  ub=lambda_obs-unname(quantile(lambda_hat_m_lambda,alpha/2))
+  #returns the vector of lower and upperbound
+  bounds<-data.frame(low_bound=lb,up_bound=ub)
+  
+  return(bounds)
+
+} 
+
+```
+
+
+```{r}
+
+# misspesficy gamma
+
+reflected_int_gamma<-function(B,n,lambda,alpha){
+
+  MainSample<-rgamma(n,2,lambda)
+  
+  #observed lambda from sample 
+  lambda_obs<- 1/mean(MainSample)
+  
+  # create B samples
+  Bootstrap<- replicate(B,sample(MainSample,replace = TRUE))
+  
+  #compute statisitc for each of the B samples
+  lambda_hat_j = 1 / colMeans(Bootstrap)  
+  
+  #gets bootsrap dist of theta_hat - theta
+  lambda_hat_m_lambda<- lambda_hat_j - lambda_obs
+  
+  #now create interval
+  #intervals
+  lb=lambda_obs-unname(quantile(lambda_hat_m_lambda,1-alpha/2))
+  ub=lambda_obs-unname(quantile(lambda_hat_m_lambda,alpha/2))
+  #returns the vector of lower and upperbound
+  bounds<-data.frame(low_bound=lb,up_bound=ub)
+  
+  return(bounds)
+
+} 
+
+```
+
+
+
+
+## Summary Information Functions
+
+We create a huge ,possibly inefficient, function to create summary results after replication of 1000 intervals under each of the 12 settings.
+
+We compute the summary statistics mentioned above in the previous section. 
+
+Note how we can easily compute the standard error of the average length. 
+
+Consider $X_i$ to be an iid sample of $n$ lengths. 
+
+It follows from the CLT that $\overline{X}\apsim N(\overline{X},\frac{Var(X)}{n})$
+
+Recall the sample standard deviation can be used to approximate the square root of the variance. 
+
+So in summary, we simply take the sample standard deviation of the interval lengths per setting and divide by the square root of $n$.
+
+
+```{r}
+
+
+
+
+Summarizer4Intervals<- function(n,all_lambdas,B_num,num_replications,interval_funct){
+
+#Goal: creates an info data frame on the 
+# for summay information about an interval creation procedure 
+
+  # n - sample size vector 
+  # lambda - vector of possible population lambdas to test
+  # B_num-  the number of bootstrap samples to take 
+  # num_replications - the number of intervals within each setting combination 
+                      # lambda and n to create 
+  # interval_funct - a string is the name of the function used to create a single confidence interval
+  
+  
+      
+      
+    
+ 
+    
+    #This function creates an interval repeated (rep) number of times 
+    #with sampel size n and lambda value lambdav 
+    # given the method used to compute bounds
+    create_an_int_for_params<-function(n,lambdav,reps){
+    # creates a dataframe of reps number of intervals 
+    # under the sample size n and lambda parameter  = lambda
+      
+      
+      #initalized df for the number of repetitions
+      int_npb_reps<-data.frame()
+      
+      
+       #progress bar for for loop on repititions
+        pb_1 = txtProgressBar(min = 1, max = length(1:reps), initial = 1) 
+      
+      #for the repitions reps  
+      for(rep in 1:reps){
+        
+        #map applies a function that takes in lambda and sample size 
+        # to compute the interval estimates
+        intervals<-(t(mapply(n,FUN=interval_funct ,B =B_num ,lambda = lambdav, alpha=0.05)))
+        
+        #joins the n vector with the interval estimates 
+        int_npb<-data.frame(matrix(do.call(rbind, intervals),ncol=2))%>%mutate(n=n)
+        
+        # updates colnames
+        colnames(int_npb) = c("lb","ub","n")
+        
+        # binds the intervals from previous replications to one df 
+        int_npb_reps<-rbind(int_npb,int_npb_reps)
+        
+        # updates progress bar
+         setTxtProgressBar(pb_1,rep)
+        
+      }
+      
+      #returns a df
+      return(int_npb_reps)
+    }
+    
+    
+    
+    
+    
+    
+    
+    #intializes dataframe
+    interval_df<-data.frame()
+    
+    
+    
+    #progress bar for for loop on lambdas
+    pb = txtProgressBar(min = 0, max = length(all_lambdas), initial = 0) 
+    
+    
+    #sweeping across lambdas 
+    for (lambdav in all_lambdas){ 
+      
+      #creates many many intervals for spesfic lambda 
+      # and ranges across all sample sizes n 
+      # THIS TAKES A WHILE 
+      many_dfs_of_ints<-create_an_int_for_params(n,lambdav,num_replications)
+      
+      # creates some summary info like lengths and lambda v
+      # creates a length of the interval variable by substracting bounds 
+      # creates an 
+      interval_df_temp<-many_dfs_of_ints%>%
+        mutate(lambda=lambdav)%>%
+        mutate(Length = ub-lb)%>%
+        mutate(isLin=sign(ub-lambdav)!=sign(lb-lambdav))%>%
+        mutate(missAbv=lambdav<lb)%>%
+        mutate(missBel = lambdav>ub)
+      
+      
+      # interval concatenated 
+      interval_df<-rbind(interval_df,interval_df_temp)
+      #progress bar 
+      setTxtProgressBar(pb,lambdav)
+      
+    }
+    
+    
+    
+    
+    #gives us the summary length
+    # and the propprotion of captured lengths 
+    # computes the standard error of the length 
+    Means_df<-interval_df%>%
+      group_by(lambda,n)%>%
+      summarise(mean_Len=mean(Length),prop_captured = mean(isLin),sd_Len=sd(Length))%>%
+      mutate(SeAvgLen = sd_Len/sqrt(num_replications))%>%
+      select(-sd_Len)
+    
+    #interval_df%>%filter(isLin==FALSE)%>%group_by(n,lambda)%>%summarise(mean(missAbv))
+    All_info_df<-interval_df%>%
+      filter(isLin==FALSE)%>%
+      group_by(n,lambda)%>%
+      summarise(prop_above=mean(missAbv),prop_below=mean(missBel))%>%
+      merge(Means_df,by=c("n","lambda"))
+    #interval_df%>%group_by(n,lambda)%>%summarise_at(vars(-group_cols()), mean)
+    All_info_df<-All_info_df%>%mutate(n=as.factor(n),lambda=as.factor(lambda))
+  
+    
+    
+    return(All_info_df)
+
+
+}
+```
+
+We create a similar function for the misspecification of our population distribution. This function will take in an interval create scheme that uses $Ga(2,\lambda)$. The differences in the function are we look for the interval to capture $\frac{\lambda}2$.
+
+```{r}
+
+
+
+##################################################
+
+# this function is for the gamma misspesficiation
+
+##################################################
+
+
+
+Summarizer4Intervals_gamma<-function(n,all_lambdas,B_num,num_replications,interval_funct){
+  
+  # takes in a vector of sample sizes 
+  # 
+  
+  
+  
+  #initalize empty df
+  interval_df<-data.frame()
+  
+  #This function creates an interval rep number of times 
+  #with sampel size n and lambda value lambdav 
+  # given the method used to compute bounds
+  create_an_int_for_params<-function(n,lambdav,reps){
+    
+    #initalized df for the number of repetitions
+    int_npb_reps<-data.frame()
+    
+    #progress bar for for loop on lambdas
+    pb_1 = txtProgressBar(min = 1, max = length(1:reps), initial = 1) 
+    #for the repitions reps  
+    for(rep in 1:reps){
+      
+      #map applies a function that takes in lambda and sample size 
+      # to compute the interval estimates
+      intervals<-(t(mapply(n,FUN=interval_funct ,B =B_num ,lambda = lambdav, alpha=0.05)))
+      
+      #joins the n vector with the interval estimates 
+      int_npb<-data.frame(matrix(do.call(rbind, intervals),ncol=2))%>%mutate(n=n)
+      
+      # updates colnames
+      colnames(int_npb) = c("lb","ub","n")
+      
+      # binds the intervals from previous replications to one df 
+      int_npb_reps<-rbind(int_npb,int_npb_reps)
+      setTxtProgressBar(pb_1,rep)
+      
+      }
+    
+    #returns a df
+    return(int_npb_reps)
+  }
+  
+  
+  
+  
+  
+  
+  
+  #intializes dataframe
+  interval_df<-data.frame()
+  
+  
+  
+  #progress bar for for loop on lambdas
+  pb = txtProgressBar(min = 0, max = length(all_lambdas), initial = 0) 
+  
+  
+  #sweeping across lambdas 
+  for (lambdav in all_lambdas){ 
+    
+    #creates many many intervals for spesfic lambda 
+    # and ranges across all sample sizes n 
+    # THIS TAKES A WHILE 
+    many_dfs_of_ints<-create_an_int_for_params(n,lambdav,num_replications)
+    
+    # creates some summary info like lengths and lambda v
+    # we consider the parameter lambda/2
+    # if it is in the interval and we use this param 
+    # to determine the miss abova and below percentages 
+    interval_df_temp<-many_dfs_of_ints%>%
+      mutate(lambda=lambdav)%>%
+      mutate(Length = ub-lb)%>%
+      mutate(isLin=(ub>lambdav/2)==(lb<lambdav/2))%>%
+      mutate(missAbv=lambdav/2<lb)%>%
+      mutate(missBel = lambdav/2>ub)
+    
+    
+    # interval concatenated 
+    interval_df<-rbind(interval_df,interval_df_temp)
+    #progress bar 
+    setTxtProgressBar(pb,lambdav)
+    
+  }
+  
+  
+  
+  
+  #gives us the summary length
+  Means_df<-interval_df%>%
+    group_by(lambda,n)%>%
+    summarise(mean_Len=mean(Length),prop_captured = mean(isLin),sd_Len=sd(Length))%>%
+    mutate(SeAvgLen = sd_Len/sqrt(num_replications))%>%
+    select(-sd_Len)
+  
+  # create prop of intervals missing above and below statisitc
+  All_info_df<-interval_df%>%
+    filter(isLin==FALSE)%>%
+    group_by(n,lambda)%>%
+    summarise(prop_above=mean(missAbv),prop_below=mean(missBel))%>%
+    merge(Means_df,by=c("n","lambda"))
+  #makes n and lambda a factor variable
+  All_info_df<-All_info_df%>%mutate(n=as.factor(n),lambda=as.factor(lambda))
+  
+
+  
+  
+  return(All_info_df)
+  
+  
+}
+
+```
+
+
+
+
+
+
+# Results & Discussion 
+
+Here we create the summary information for each of our 6 methods, given the correct parametrazation. 
+
+```{r}
+
+# here we define the sample sizes we wish to examine
+n_to_range<-c(10,30,100,500)
+
+# here are the population lambdas we want to obseve
+all_lambdas_vals = c(.5,1,5)
+
+# here are the number of  Bootstraps we do in an outer loop 
+# given a method requires a bootstrap 
+B_num_for_boot=1000
+
+
+# this number is the number of replications we want for each interval within 
+# each combination of lambda and n 
+num_replications_for_int<-1000
+
+```
+
+
+To save time on knitting of this document and overall runtime. 
+The following functions were run once and saved as *.Rda* files in the Github Repository for this project. 
+
+
+```{r eval =FALSE}
+
+# all of these dataframes are created previously and stored via save functions
+
+All_info_paramboot<-Summarizer4Intervals(n=n_to_range,
+all_lambdas = all_lambdas_vals,
+num_replications = 1000,
+interval_funct = "param_boots",B_num=1000)
+
+
+All_info_exact_ci<-Summarizer4Intervals(n=n_to_range,
+all_lambdas = all_lambdas_vals,
+num_replications = 1000,
+interval_funct = "exact_dist_ci",B_num=1000)
+
+
+
+All_info_paramboot<-Summarizer4Intervals(n=n_to_range,
+all_lambdas = all_lambdas_vals,
+num_replications = 1000,
+interval_funct = "np_boots",B_num=1000)
+
+
+
+All_info_paramboot<-Summarizer4Intervals(n=n_to_range,
+all_lambdas = all_lambdas_vals,
+num_replications = 1000,
+interval_funct = "CLT_int",B_num=1000)
+
+
+#shortened the Bootstrap  replications to 100 to save on computation time
+All_info_np_boot_se_t<-Summarizer4Intervals(n=n_to_range,
+all_lambdas = all_lambdas_vals,
+num_replications = 1000,
+interval_funct = "np_boot_se_t",B_num=100)
+
+
+All_info_reflect<-Summarizer4Intervals(n=n_to_range,
+all_lambdas = all_lambdas_vals,
+num_replications = 1000,
+interval_funct = "reflected_int",B_num=1000)
+
+
+#exact for gamma
+
+All_info_exact_gamma<-Summarizer4Intervals_gamma(n=n_to_range,
+all_lambdas = all_lambdas_vals,
+num_replications = 1000,
+interval_funct = "exact_dist_ci_gamma",B_num=1000)
+
+#CLT for gamma 
+All_info_CLT_gamma<-Summarizer4Intervals_gamma(n=n_to_range,
+all_lambdas = all_lambdas_vals,
+num_replications = 1000,
+interval_funct = "CLT_int_gamma",B_num=1000)
+
+All_info_t_int_gamma<-Summarizer4Intervals_gamma(n=n_to_range,
+all_lambdas = all_lambdas_vals,
+num_replications = 1000,
+interval_funct = "np_boot_se_t_gamma",B_num=80)
+
+
+
+```
+
+
+
+
+
+
+
+```{r}
+
+# this loads data frames created from running the code in the chunck above
+# this allows us shorten  knitting time
+load("Exact_CI_info.Rda")
+load("ParamBoot.Rda")
+load("Sum_np_Boots.Rda")
+load("Sum_info_CLT.Rda")
+load("ReflectedInt.Rda")
+load("T_test_info.Rda")
+
+
+# this loads the infromation from the gamma misspesfication summary dfs
+load("NPBoot_gamma.Rda")
+load("Reflected_gamma_info.Rda")
+load("info_gamma_param.Rda")
+load("All_info_CLT_gamma.Rda")
+load("All_info_exact_gamma.Rda")
+load("All_info_t_int_gamma.Rda")
+```
+
+
+
+
+
+## Tables of Summary Infromation for $exp(\lambda)$
+
+
+```{r}
+kable(All_info_exact_ci,caption = "Exact Confidence Interval Summary Infromation for sample exp(n,lambda)")
+kable(All_info_CLT,caption = "CLT & Delta Method Summary Infromation for sample exp(n,lambda)")
+kable(Info_npBoots,caption = "Nonparametric Bootstrap Summary Infromation for sample exp(n,lambda)")
+kable(All_info_paramboot,caption = "Parametric Bootstrap Summary Infromation for sample exp(n,lambda)")
+kable(All_info_reflect,caption="Reflected Non-Parametric Interval for sample exp(n,lambda)")
+kable(All_info_np_boot_se_t,caption = "Non-Parametric Bootstrap to Create T-Test from sample exp(n,lambda)")
+
+```
+
+
+
+
+## Tables of Summary Infromation for $Ga(2,\lambda)$
+
+
+```{r}
+kable(All_info_exact_gamma,caption = "Exact Confidence Interval Summary Infromation for sample Ga(2,lambda)")
+kable(All_info_CLT_gamma,caption = "CLT & Delta Method Summary Infromation for sample Ga(2,lambda)")
+kable(np_boots_gamma_info,caption = "Nonparametric Bootstrap Summary Infromation for sample Ga(2,lambda)")
+kable(Info_param_gamma,caption = "Parametric Bootstrap Summary Infromation for sample Ga(2,lambda)")
+kable(All_info_reflect_gamma,caption="Reflected Non-Parametric Interval for sample Ga(2,lambda)")
+kable(All_info_t_int_gamma,caption = "Non-Parametric Bootstrap to Create T-Test from sample Ga(2,lambda)")
+
+```
+
+
+
+## Visual Summaries
+
+Below we Add a tag to each summary table so we have a correspondence with each method. 
+
+```{r}
+
+#creates a label for each dataframe about what method was used to create sum info
+All_info_exact_ci$Method = "Exact"
+Info_npBoots$Method = "NPBoot"
+All_info_paramboot$Method = "PBoot"
+All_info_CLT$Method ="CLT"
+All_info_reflect$Method = "Reflected"
+All_info_np_boot_se_t$Method = "T_Test"
+
+
+All_info_reflect_gamma$Method = "Reflected"
+np_boots_gamma_info$Method = "NPBoot"
+Info_param_gamma$Method = "PBoot"
+All_info_CLT_gamma$Method = "CLT"
+All_info_exact_gamma$Method = "Exact"
+All_info_t_int_gamma$Method = "T_Test"
+
+```
+
+
+Here we vertically concatenate the infromation together for each parameterization:
+correct and incorrect. Note that the methods are still in the same order. 
+
+
+```{r}
+# going to vertically stack all dfs from 6 methods
+merged_all_dfs<-rbind(All_info_paramboot,
+                      Info_npBoots,
+                      All_info_exact_ci,
+                      All_info_CLT,
+                      All_info_reflect,
+                      All_info_np_boot_se_t)
+
+# creates a larger dataframe of summary infoamtion for the 6 interval methods 
+# when constructed usin the mispesficed population interval
+merged_all_dfs_gamma<-merged_all_dfs_gamma<-rbind(Info_param_gamma,
+                                                  np_boots_gamma_info,
+                                                  All_info_exact_gamma,
+                                                  All_info_CLT_gamma,
+                                                  All_info_reflect_gamma,
+                                                  All_info_t_int_gamma)
+
+```
+
+
+
+We now are going to examine how to coverage rate changes when we look at changing sample size. 
+
+The box plot below is a crude representation of the coverage rate.
+This box plot is created by 3 points, each representing one of three population $\lambda$'s used. 
+These individual points represent the coverage rate for a setting with the $n$ on the x-axis, and a particular $\lambda$. 
+These points are jittered on top of the boxplots. 
+
+
+```{r}
+
+# creates
+ggplot(merged_all_dfs,aes(x=n,y=prop_captured))+theme_classic()+
+  geom_hline(yintercept = .95)+geom_boxplot(aes(col=Method))+geom_jitter(aes(col=Method),alpha=0.4,width=.05)+
+  facet_grid(~Method)+
+  labs(title="Comparison of Coverage Rate Across Different Interval Methods",subtitle="Varying Sample Size",y="Coverage Rate",x="Sample Size (n)")
+
+
+
+ggplot(merged_all_dfs_gamma,aes(x=n,y=prop_captured))+theme_classic()+
+  geom_hline(yintercept = .95)+geom_boxplot(aes(col=Method))+geom_jitter(aes(col=Method),alpha=0.4,width=.05)+
+  facet_grid(~Method)+
+  labs(title="Comparison of Coverage Rate with Gamma Spesification",subtitle="Varying Sample Size",y="Coverage Rate",x="Sample Size (n)")
+
+
+
+```
+
+We also note that the horizontal line going across each figure represents the coverage rate we prescribed throughout the setting: $1-\alpha$
+
+
+## Examing Population Parameter's Coverage Impact
+
+
+```{r}
+
+# created a plot from the correct spesification 
+# looking at lambda 
+
+ggplot(merged_all_dfs,aes(x=lambda,y=prop_captured))+theme_classic()+
+  geom_hline(yintercept = .95)+geom_boxplot(aes(col=Method))+geom_jitter(aes(col=Method),alpha=0.4,width=.05)+
+  facet_grid(~Method)+
+  labs(title="Comparison of Coverage Rate Across Different Interval Methods",subtitle="Varying Population Parameter",y="Coverage Rate",x="Population Rate")
+
+
+# plot for misspesficiation 
+# looking at lambda values
+ggplot(merged_all_dfs_gamma,aes(x=lambda ,y=prop_captured))+theme_classic()+
+  geom_hline(yintercept = .95)+geom_boxplot(aes(col=Method))+geom_jitter(aes(col=Method),alpha=0.4,width=.05)+
+  facet_grid(~Method)+
+  labs(title="Comparison of Coverage Rate with Gamma Spesification",subtitle="Varying Population Parameter",y="Coverage Rate",x="Population Rate")
+
+```
+
+
+We see that changing the lambda population parameter does not really change coverage rate for an interval method. 
+
+
+## Examining Interval Widths 
+
+```{r}
+
+# examin interval width and how to changes with sample size 
+# exact spesficiation 
+ggplot(merged_all_dfs,aes(x=n,y=mean_Len ))+theme_classic()+
+ geom_boxplot(aes(col=Method))+geom_jitter(aes(col=Method),alpha=0.4,width=.05)+
+  facet_grid(~Method)+
+  labs(title="Comparison of Avg Width Across Different Interval Methods",subtitle="Varying Sample Size",y="Mean Interval Width",x="Sample Size (n)")
+
+# gamma spesficiation 
+# examin interval width and how to changes with sample size 
+ggplot(merged_all_dfs_gamma,aes(x=n,y=mean_Len ))+theme_classic()+
+ geom_boxplot(aes(col=Method))+geom_jitter(aes(col=Method),alpha=0.4,width=.05)+
+  facet_grid(~Method)+
+  labs(title="Comparison of Average Width for Incorrect Spesification",subtitle="Varying Sample Size",y="Mean Interval Width",x="Sample Size (n)")
+
+
+```
+
+
+We see that as sample size increases the mean interval width decreases across all methods. 
+We further note that the widths of all the intervals using the mispesficed population distribution 
+$Ga(2,\lambda)$. 
+
+
+
+## Examining Standard Error
+
+Observe the main trend here. As sample size increases, the standard error of the length decreases as sample size increases across all methods. We note that the average std error of the length is less overall for the incorrect spesification. 
+
+```{r}
+
+# examin interval width and how to changes with sample size 
+# exact spesficiation 
+ggplot(merged_all_dfs,aes(x=n,y=SeAvgLen ))+theme_classic()+
+ geom_boxplot(aes(col=Method))+geom_jitter(aes(col=Method),alpha=0.4,width=.05)+
+  facet_grid(~Method)+
+  labs(title="Comparison of Se(L_bar) Across Different Interval Methods",subtitle="Varying Sample Size",y="Se(L_bar)",x="Sample Size (n)")
+
+# gamma spesficiation 
+# examin interval width and how to changes with sample size 
+ggplot(merged_all_dfs_gamma,aes(x=n,y=SeAvgLen ))+theme_classic()+
+ geom_boxplot(aes(col=Method))+geom_jitter(aes(col=Method),alpha=0.4,width=.05)+
+  facet_grid(~Method)+
+  labs(title="Comparison of Se(L_bar) for Incorrect Spesification",subtitle="Varying Sample Size",y="Se(L_bar)",x="Sample Size (n)")
+
+
+```
+
+As sample size increases the standard error of the average length of intervals decreases. 
+
+# Conclusion
+
+
+For the correct $\exp(\lambda)$ distribution, the exact and delta intervals were consistently hovering around 0.95 across sample size when we looked at coverage rates. In contrast,  the nonparametric, non-parametric reflected and the parametric bootstrap intervals were not consistent in coverage rate  but improved  and approached 0.95 as sample size increased. Finally the bootstrap t-interval under performed but consistently with a  coverage rate hovering around .93.  
+
+Overall, we have found that exact and approximate CLT based methods performed the best in terms of coverage rate across all methods - when considering the correct population. This is if we consider the best coverage rate being higher / closer to one. We may however - want a coverage rate that is closer to our spesfied coverage rate from simulation (.95). 
+
+
+We hypothesis a reason that the t-test bootstrap preforms so poorly in terms of coverage rate is that two quantites needed to be estimated by a bootstrap. Having two estimated quantities increases the variability in our sampling distribution. Having this increases variabliity leads to more intervals missing or not capturing the true parameter.  
+
+For the incorrect distribution, all coverage rates in the exact and CLT methods actually improved beyond .95. The coverage rates seemed to hover around 99% across all settings for these two methods when the $gamma(2,\lambda)$ was used. We note that since our coverage rate is not hovering around our specified .95 coverage rate - this indicates our underlying population is incorrect - which it is. In contrast, as sample size increases our nonparametric methods ( raw and reflected) approach our correctly specified coverage rate of .95. We note while coverage rate is greater for the incorrect specification, we may desire have an interval method that gives us an average coverage rate that is what we specified. 
+
+One concept that was quite surprising was the fact that the parametric bootstrap coverage rates bounded from above the coverage rates for the nonparametric bootstrap when considering the gamma population. We thought that a wrong  distribution would have the opposite effect and actually cause the coverage rates for the parametric model to be worse than a nonparametric interval. 
+
+That being said - we can give a overarching higher level argument for why something like the exact interval would decrease in length when looking at the incorrect interval. Observe the interval for estimating $\lambda$ from an exponential. 
+
+
+$$\hat{\lambda} \pm ga_{\alpha/2}\frac{\hat{\lambda}}{\sqrt{n}}$$
+
+Now lets say we use the same CLT argument, from the $exp(\lambda)$ case, but estimate $\lambda/2$ from our incorrect distribution. 
+
+$$\frac{\hat{\lambda}}{2} \pm ga_{\alpha/2}\frac{\hat{\lambda}}{2\sqrt{n}}$$
+This interval's width is half the length of the interval when we use the exponential population for our sample estimate. 
+
+
+When we examine the standard error of the average length of all  intervals across all settings- we see that lengths are roughly smaller by a factor of 2 for the incorrect population in comparison to the correct. 
+
+Further, we note that our standard error of the average length decreases  with sample size. As sample size increase the variability in the average variability  (or length) of our interval decreases rapidly. 
+
+
+Our recommendation, for a small sample size, is to use an exact based or CLT Approximate interval, when considering the correct $exp(\lambda)$ distribution. 
+If an appropriate large sample size is given (above 500), and one does not truly know anything about the underlying distribution or may have an incorrect sample from an improper population distribution  - it may be appropriate to use a non-parametric method such as raw percentile.  This is especially true in the coverage rate for these  methods approaches the specified coverage rate 0.95.  
+
+
+
+
+
+
